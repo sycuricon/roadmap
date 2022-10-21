@@ -37,7 +37,7 @@ class GCD extends Module {
 }
 
 object GenGCD extends App {
-    println("Generating Verilog code of the GCD Moudle ...")
+    println("Elaborating GCD Moudle ...")
     emitVerilog(new GCD(), Array("--target-dir", "build"))
     println("Done")
 }

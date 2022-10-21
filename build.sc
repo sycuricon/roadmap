@@ -22,9 +22,10 @@ object root extends SbtModule { m =>
   )
   override def ivyDeps = Agg(
     ivy"edu.berkeley.cs::chisel3:3.5.1",
+    ivy"edu.berkeley.cs::firrtl-diagrammer:1.5.4"
   )
   override def scalacPluginIvyDeps = Agg(
-    ivy"edu.berkeley.cs:::chisel3-plugin:3.5.1",
+    ivy"edu.berkeley.cs:::chisel3-plugin:3.5.1"
   )
   object test extends Tests with ScalaTest {
     override def ivyDeps = m.ivyDeps() ++ Agg(
