@@ -322,6 +322,11 @@ src_managed/
 project/boot/
 project/plugins/project/
 
+# mill specific
+out/
+.bsp/
+test_run_dir/
+
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
