@@ -20,11 +20,14 @@ class GCD extends Module {
 
   val x  = Reg(UInt())
   val y  = Reg(UInt())
+  val valid = Wire(Bool())
 
   when(x > y) { x := x - y }
     .otherwise { y := y - x }
 
-  when(io.loadingValues) {
+  valid := Mux(io.loadingValues === true.B, true.B, false.B)
+
+  when(valid) {
     x := io.value1
     y := io.value2
   }
