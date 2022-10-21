@@ -35,3 +35,9 @@ class GCD extends Module {
   io.outputGCD := x
   io.outputValid := y === 0.U
 }
+
+object GenGCD extends App {
+    println("Generating Verilog code of the GCD Moudle ...")
+    emitVerilog(new GCD(), Array("--target-dir", "build"))
+    println("Done")
+}
