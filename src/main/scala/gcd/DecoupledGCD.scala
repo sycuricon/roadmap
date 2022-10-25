@@ -75,5 +75,4 @@ class DecoupledGcd(width: Int) extends Module {
 object GenDecoupledGcd extends App {
     println("Elaborating DecoupledGcd Moudle ...")
     emitVerilog(new DecoupledGcd(16), Array("--target-dir", "build"))
-    println("Done")
 }
