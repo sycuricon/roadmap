@@ -5,8 +5,7 @@ ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "riscfree"
 
 val chiselVersion = "3.5.1"
-
-val roadmap_info = taskKey[Unit]("roadmap hello information")
+val roadmap_boot = settingKey[Unit]("roadmap boot information")
 
 lazy val root = (project in file("."))
   .settings(
@@ -24,7 +23,8 @@ lazy val root = (project in file("."))
       "-P:chiselplugin:genBundleElements",
     ),
     addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
-    roadmap_info := {
+    Global / excludeLintKeys += roadmap_boot,
+    roadmap_boot := {
       val info = """|      ____
                     |     /___/\_                  
                     |    _\   \/_/\__              Hi, there is the playground of the riscfree Project
@@ -32,11 +32,9 @@ lazy val root = (project in file("."))
                     |  \   __    __ \ \              Elaborate Verilog:
                     | __\  \_\   \_\ \ \   __          1. "runMain + class name (with main method)"
                     |/_/\\   __   __  \ \_/_/\         2. "run", and select your target
-                    |\_\/_\__\/\__\/\__\/_\_\/
-                    |   \_\/_/\       /_\_\/
+                    |\_\/_\__\/\__\/\__\/_\_\/       Tips: add `~` before command to automatically execute 
+                    |   \_\/_/\       /_\_\/               whenever source files change.
                     |      \_\/       \_\/       """.stripMargin
-      println(info)
+      println(info)      
     },
-    Compile / compile := (Compile / compile dependsOn roadmap_info).value
-
   )
