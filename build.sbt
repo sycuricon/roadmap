@@ -32,17 +32,16 @@ lazy val root = (project in file("."))
     addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
     Global / excludeLintKeys += roadmap_boot,
     roadmap_boot := {
-      val info = """|      ____
-                    |     /___/\_                   Hi, there is the playground of the riscfree Project
-                    |    _\   \/_/\__                 Elaborate Verilog:
-                    |  __\       \/_/\                  1. "runMain + main class name"
-                    |  \   __    __ \ \                 2. "run", and select your target
-                    | __\  \_\   \_\ \ \   __           3. "elaborate + chisel module name"
-                    |/_/\\   __   __  \ \_/_/\        
-                    |\_\/_\__\/\__\/\__\/_\_\/       Tips: add `~` before command to automatically execute
-                    |   \_\/_/\       /_\_\/               whenever source files change.
-                    |      \_\/       \_\/       """.stripMargin
-      println(info)
+      val info = """|      ___                   Hi, there is the playground of the riscfree Project
+                    |     /__/\__                
+                    |    _\  \/_/\                 Elaborate Verilog:
+                    |    \  ___ \ \                  1.  "run", and then select your target
+                    |   __\ \  \ \ \   __            2.  "runMain + main class name"
+                    | _/_/\\ \__\ \ \_/_/\___       >3.< "elaborate + chisel module name"
+                    |/_\ \/_\      \__\ \/__/\   
+                    |\      __       __     \ \    Tips: add `~` before command to automatically execute
+                    | \_____\/\ _____\/\_____\/          whenever source files change.""".stripMargin
+      println(scala.Console.CYAN+info)
     },
     elaborate := (Def.inputTaskDyn {
       val s: TaskStreams = streams.value
