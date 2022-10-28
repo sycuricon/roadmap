@@ -6,7 +6,7 @@ ThisBuild / scalaVersion     := "2.13.8"
 ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "riscfree"
 
-val chiselVersion = "3.5.1"
+val chiselVersion = "3.5.4"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -29,6 +29,7 @@ lazy val root = (project in file("."))
     name := "roadmap",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % chiselVersion,
+      "com.sifive" %% "chisel-circt" % "0.6.0",
       "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4",
       "edu.berkeley.cs" %% "chiseltest" % "0.5.1" % "test"
     ),

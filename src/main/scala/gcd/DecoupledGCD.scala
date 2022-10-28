@@ -4,6 +4,7 @@ package gcd
 
 import chisel3._
 import chisel3.util.Decoupled
+import chisel3.stage.ChiselGeneratorAnnotation
 
 class GcdInputBundle(val w: Int) extends Bundle {
   val value1 = UInt(w.W)
@@ -72,7 +73,22 @@ class DecoupledGcd(width: Int) extends Module {
   }
 }
 
-object GenDecoupledGcd extends App {
+object SFC_GenDecoupledGcd extends App {
     println("Elaborating DecoupledGcd Moudle ...")
+
+    // both of them are equal
     emitVerilog(new DecoupledGcd(16), Array("--target-dir", "build"))
+    new (chisel3.stage.ChiselStage).execute(
+      Array("--target-dir", "build"), 
+      Seq(ChiselGeneratorAnnotation(() => new DecoupledGcd(16))))
+}
+
+object MFC_GenDecoupledGcd extends App {
+    println("Elaborating DecoupledGcd Moudle ...")
+
+    // both of them are equal
+    // circt.stage.ChiselStage.emitSystemVerilog(new DecoupledGcd(16))  // lack of target dictionary
+    (new circt.stage.ChiselStage).execute(
+      Array("--target", "systemverilog", "--target-dir", "build"),
+      Seq(chisel3.stage.ChiselGeneratorAnnotation(() => new DecoupledGcd(16))))
 }
