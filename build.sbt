@@ -17,7 +17,8 @@ val cleanElaborate = taskKey[Unit]("Delete elaborate dictionary")
 val dumpVerilog = false
 val dumpFIRRTL = false
 val targetDirectory = "build"
-val otherArgs = Seq("--no-dce", 
+val otherArgs = Seq(
+                    "--no-dce", 
                     "--infer-rw",
                     "--emission-options", "disableMemRandomization,disableRegisterRandomization",
                     "--gen-mem-verilog", "full"
