@@ -8,13 +8,20 @@ ThisBuild / organization     := "riscfree"
 
 val chiselVersion = "3.5.1"
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 /* Roadmap required configurations */
 val roadmap_boot = settingKey[Unit]("roadmap boot information").withRank(KeyRanks.Invisible)
 val elaborate = inputKey[Unit]("elaborate and dump circuits")
+val cleanElaborate = taskKey[Unit]("Delete elaborate dictionary")
 val dumpVerilog = false
 val dumpFIRRTL = false
 val targetDirectory = "build"
-val otherArgs = Seq("--infer-rw")
+val otherArgs = Seq("--no-dce", 
+                    "--infer-rw",
+                    "--emission-options", "disableMemRandomization,disableRegisterRandomization",
+                    "--gen-mem-verilog", "full"
+                    )
 
 lazy val root = (project in file("."))
   .settings(
@@ -46,6 +53,7 @@ lazy val root = (project in file("."))
       println(scala.Console.CYAN+info)
     },
     elaborate := (Def.inputTaskDyn {
+      cleanElaborate.value
       val s: TaskStreams = streams.value
       val args = spaceDelimited("<args>").parsed
       val classPath = args(0)
@@ -84,5 +92,11 @@ lazy val root = (project in file("."))
         }
       }
     }).evaluated,
+    cleanElaborate := {
+      val s: TaskStreams = streams.value
+      val build = baseDirectory.value / targetDirectory
+      s.log.warn(scala.Console.YELLOW + s"cleanElaborate: ${build} is removed")
+      IO.delete(build)
+    }
   )
 

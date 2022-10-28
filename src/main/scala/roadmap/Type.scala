@@ -23,4 +23,12 @@ class MyModule(gen: () => MyBundle) extends Module {
     
     // Need to initialize all hardware values
     xReg := DontCare
+
+    println("xType is " + xType)
+    println("dirXType is " + dirXType)
+    println("xReg is " + xReg)
+    println("xIO is " + xIO)
+    println("xRegInit is " + xRegInit)
+    println("xLit is " + xLit)
+    println("y is " + y)
 }
