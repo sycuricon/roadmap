@@ -41,7 +41,11 @@ lazy val root = (project in file("."))
       "-P:chiselplugin:genBundleElements",
     ),
     addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
-    Compile / sourceGenerators += Def.task(Seq((Compile / sourceManaged).value / "Elaborate.scala")).taskValue,
+    Compile / sourceGenerators += Def.task {
+      val file = (Compile / sourceManaged).value / "Elaborate.scala"
+      IO.touch(file)
+      Seq(file)
+    }.taskValue,
     roadmap_boot := {
       val info = """|      ___                   Hi, there is the playground of the riscfree Project
                     |     /__/\__                
