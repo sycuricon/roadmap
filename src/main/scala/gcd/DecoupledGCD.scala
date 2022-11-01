@@ -63,6 +63,7 @@ class DecoupledGcd(width: Int) extends Module {
     }
   }.otherwise {
     when(input.valid) {
+      printf ("Hello FIRRTL\n")
       val bundle = input.deq()
       x := bundle.value1
       y := bundle.value2

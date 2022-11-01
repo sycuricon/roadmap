@@ -1,0 +1,6 @@
+read -sv build/DecoupledGcd.v
+hierarchy -top DecoupledGcd
+proc
+write_firrtl test.fir
+
+# cat test.firrtl | firtool -format=fir -warn-on-unprocessed-annotations -verify-each=false -disable-infer-rw -dedup -annotation-file build/DecoupledGcd.anno.json
