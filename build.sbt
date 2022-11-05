@@ -124,25 +124,25 @@ lazy val roadmap = (project in file("."))
   .settings(usePluginSettings: _*)
   .dependsOn(firrtl, chisel, core, `macro`, plugin, chiseltest)
 
-lazy val chiseltest = (project in file("repo/chiseltest"))
+lazy val chiseltest = (project in file("depend/chiseltest"))
   .settings(commonSettings: _*)
 
-lazy val firrtl = (project in file("repo/firrtl"))
+lazy val firrtl = (project in file("depend/firrtl"))
   .settings(commonSettings: _*)
 
-lazy val chisel = (project in file("repo/chisel3"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
-lazy val core = (project in file("repo/chisel3/core"))
+lazy val chisel = (project in file("depend/chisel3"))
   .settings(commonSettings: _*)
   .dependsOn(firrtl)
 
-lazy val `macro` = (project in file("repo/chisel3/macro"))
+lazy val core = (project in file("depend/chisel3/core"))
   .settings(commonSettings: _*)
   .dependsOn(firrtl)
 
-lazy val plugin = (project in file("repo/chisel3/plugin"))
+lazy val `macro` = (project in file("depend/chisel3/macro"))
+  .settings(commonSettings: _*)
+  .dependsOn(firrtl)
+
+lazy val plugin = (project in file("depend/chisel3/plugin"))
   .settings(commonSettings: _*)
   .dependsOn(firrtl)
 
