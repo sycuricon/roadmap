@@ -1,4 +1,3 @@
-import sys.process._
 import sbt.complete.Parsers.spaceDelimited
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -32,18 +31,21 @@ lazy val usePluginSettings = Seq(
 /* roadmap Task */
 val roadmapInfo = settingKey[Unit]("roadmap boot information").withRank(KeyRanks.Invisible)
 val elaborate = inputKey[Unit]("elaborate and dump circuits")
+val elaborateDir = settingKey[File]("roadmap elaborate target directory")
 val cleanElaborate = taskKey[Unit]("Delete elaborate dictionary")
 
 /* roadmap configurations */
-val dumpVerilog = false
-val dumpFIRRTL = false
-val targetDirectory = "build"
-val otherArgs = Seq("--full-stacktrace",
-                    "--no-dce", "-ll", "info", "--log-class-names",
-                    "--infer-rw",
-                    "--emission-options", "disableMemRandomization,disableRegisterRandomization",
-                    "--gen-mem-verilog", "full"
-                    )
+val dumpVerilog = true
+val dumpFIRRTL = true
+val outputDir = "build"
+val otherArgs = Seq(
+  "--full-stacktrace",
+  "-ll", "info", "--log-class-names",
+  "--no-dce",
+  "--infer-rw",
+  "--emission-options", "disableMemRandomization,disableRegisterRandomization",
+  "--gen-mem-verilog", "full"
+)
 
 lazy val roadmapSettings = Seq(
   name := "roadmap",
@@ -59,22 +61,36 @@ lazy val roadmapSettings = Seq(
     Seq(file)
   }.taskValue,
   roadmapInfo := {
-    val info = """|      ___                   Hi, there is the playground of the roadmap project
-                  |     /__/\__                
-                  |    _\  \/_/\                 Elaborate Verilog:
-                  |    \  ___ \ \                  1.  "run", and then select your target
-                  |   __\ \  \ \ \   __            2.  "runMain + main class name"
-                  | _/_/\\ \__\ \ \_/_/\___      > 3.< "elaborate + chisel module name"
-                  |/_\ \/_\      \__\ \/__/\     
-                  |\      __       __     \ \    Tips: add `~` before command to automatically execute
-                  | \_____\/\ _____\/\_____\/          whenever source files change.""".stripMargin
-    println(scala.Console.CYAN+info)
+    val stamp = (Compile / sourceManaged).value / ".roadmap"
+    if (!stamp.exists()) {
+      val info =
+        """|      ___                   Hi, there is the playground of the roadmap project
+           |     /__/\__
+           |    _\  \/_/\                 Elaborate Verilog:
+           |    \  ___ \ \                  1.  "run", and then select your target
+           |   __\ \  \ \ \   __            2.  "runMain + main class name"
+           | _/_/\\ \__\ \ \_/_/\___      > 3.< "elaborate + chisel module name"
+           |/_\ \/_\      \__\ \/__/\
+           |\      __       __     \ \    Tips: add `~` before command to automatically execute
+           | \_____\/\ _____\/\_____\/          whenever source files change.""".stripMargin
+      println(scala.Console.CYAN + info)
+      IO.touch(stamp)
+    }
+  },
+  elaborateDir := {
+    val targetDirectory = new File(outputDir)
+    if (targetDirectory.isAbsolute) {
+      targetDirectory
+    }
+    else {
+      baseDirectory.value / outputDir
+    }
   },
   elaborate := (Def.inputTaskDyn {
     cleanElaborate.value
     val s: TaskStreams = streams.value
     val args = spaceDelimited("<args>").parsed
-    val classPath = args(0)
+    val classPath = args.head
     val classArray = classPath.split("\\.")
     if (classArray.length > 1) {
       Def.taskDyn{
@@ -85,7 +101,7 @@ lazy val roadmapSettings = Seq(
               |import chisel3._
               |object ${"_elaborate_" + classArray.last} extends App {
               |println("[info] elaborating ${classPath} module")
-              |emitVerilog(new ${classArray.last}(${args.drop(1).mkString(" ")}), Array("--target-dir", "${targetDirectory}") ++ Array("${otherArgs.mkString("\", \"")}") )
+              |emitVerilog(new ${classArray.last}(${args.drop(1).mkString(" ")}), Array("--target-dir", "${elaborateDir.value}") ++ Array("${otherArgs.mkString("\", \"")}") )
               |}""".stripMargin)
         }.value
         (Compile / runMain).toTask(
@@ -93,14 +109,24 @@ lazy val roadmapSettings = Seq(
         ).value
         Def.task {
           if (dumpFIRRTL) {
-            val firrtl_path = s"${baseDirectory.value}/${targetDirectory}/${classArray.last}.fir"
-            s.log.info(scala.Console.BLUE + "Dump FIRRTL (" + firrtl_path + ")")
-            println(("cat " + firrtl_path).!!)
+            val firrtl_path = elaborateDir.value / s"${classArray.last}.fir"
+            if (firrtl_path.exists()) {
+              s.log.info(scala.Console.BLUE + s"FIRRTL code in ${firrtl_path}:")
+              printf(IO.read(firrtl_path))
+            }
+            else {
+              s.log.info(scala.Console.RED + s"Can not find ${firrtl_path}, does the elaborate task fail?")
+            }
           }
           if (dumpVerilog) {
-            val verilog_path = s"${baseDirectory.value}/${targetDirectory}/${classArray.last}.v"
-            s.log.info(scala.Console.BLUE + "Dump Verilog (" + verilog_path + ")")
-            println(("cat " + verilog_path).!!)
+            val verilog_path = elaborateDir.value / s"${classArray.last}.v"
+            if (verilog_path.exists()) {
+              s.log.info(scala.Console.GREEN + s"Verilog code in ${verilog_path}:")
+              printf(IO.read(verilog_path))
+            }
+            else {
+              s.log.info(scala.Console.RED + s"Can not find ${verilog_path}, does the elaborate task fail?")
+            }
           }
         }
       }
@@ -112,8 +138,8 @@ lazy val roadmapSettings = Seq(
   }).evaluated,
   cleanElaborate := {
     val s: TaskStreams = streams.value
-    val build = baseDirectory.value / targetDirectory
-    s.log.warn(scala.Console.YELLOW + s"cleanElaborate: ${build} is removed")
+    val build = elaborateDir.value
+      s.log.warn(scala.Console.YELLOW + s"cleanElaborate: ${build} is removed")
     IO.delete(build)
   }
 )
