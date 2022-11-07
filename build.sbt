@@ -6,28 +6,6 @@ ThisBuild / scalaVersion     := "2.12.16"
 ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "zjv"
 
-lazy val commonSettings = Seq(
-  scalacOptions ++= Seq(
-    "-deprecation",
-    "-feature",
-    "-unchecked",
-    "-explaintypes",
-    "-Xcheckinit",
-    "-language:reflectiveCalls",
-  ),
-)
-
-lazy val usePluginSettings = Seq(
-  Compile / scalacOptions ++= {
-    val jar = (plugin / Compile / Keys.`package`).value
-    val addPlugin = "-Xplugin:" + jar.getAbsolutePath
-    // add plugin timestamp to compiler options to trigger recompile of
-    // main after editing the plugin. (Otherwise a 'clean' is needed.)
-    val dummy = "-Jdummy=" + jar.lastModified
-    Seq(addPlugin, dummy)
-  }
-)
-
 /* roadmap Task */
 val roadmapInfo = settingKey[Unit]("roadmap boot information").withRank(KeyRanks.Invisible)
 val elaborate = inputKey[Unit]("elaborate and dump circuits")
@@ -35,8 +13,8 @@ val elaborateDir = settingKey[File]("roadmap elaborate target directory")
 val cleanElaborate = taskKey[Unit]("Delete elaborate dictionary")
 
 /* roadmap configurations */
-val dumpVerilog = true
-val dumpFIRRTL = true
+val dumpVerilog = false
+val dumpFIRRTL = false
 val outputDir = "build"
 val otherArgs = Seq(
   "--full-stacktrace",
@@ -54,7 +32,23 @@ lazy val roadmapSettings = Seq(
     "com.sifive" %% "chisel-circt" % "0.6.0",
     "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4"
   ),
-  scalacOptions ++= Seq("-P:chiselplugin:genBundleElements"),
+  Compile / scalacOptions ++= {
+    val jar = (plugin / Compile / Keys.`package`).value
+    val addPlugin = "-Xplugin:" + jar.getAbsolutePath
+    // add plugin timestamp to compiler options to trigger recompile of
+    // main after editing the plugin. (Otherwise a 'clean' is needed.)
+    val dummy = "-Jdummy=" + jar.lastModified
+    Seq(addPlugin, dummy)
+  },
+  scalacOptions ++= Seq(
+    "-deprecation",
+    "-feature",
+    "-unchecked",
+    "-explaintypes",
+    "-Xcheckinit",
+    "-language:reflectiveCalls",
+    "-P:chiselplugin:genBundleElements",
+  ),
   Compile / sourceGenerators += Def.task {
     val file = (Compile / sourceManaged).value / "Elaborate.scala"
     IO.touch(file)
@@ -144,31 +138,13 @@ lazy val roadmapSettings = Seq(
   }
 )
 
-lazy val roadmap = (project in file("."))
-  .settings(commonSettings: _*)
-  .settings(roadmapSettings: _*)
-  .settings(usePluginSettings: _*)
-  .dependsOn(firrtl, chisel, core, `macro`, plugin, chiseltest)
-
-lazy val chiseltest = (project in file("depend/chiseltest"))
-  .settings(commonSettings: _*)
-
 lazy val firrtl = (project in file("depend/firrtl"))
-  .settings(commonSettings: _*)
-
 lazy val chisel = (project in file("depend/chisel3"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
 lazy val core = (project in file("depend/chisel3/core"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
-lazy val `macro` = (project in file("depend/chisel3/macro"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
+lazy val macros = (project in file("depend/chisel3/macros"))
 lazy val plugin = (project in file("depend/chisel3/plugin"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
+lazy val chiseltest = (project in file("depend/chiseltest"))
 
+lazy val roadmap = (project in file("."))
+  .settings(roadmapSettings: _*)
+  .dependsOn(firrtl, chisel, core, macros, plugin, chiseltest)
