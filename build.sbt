@@ -6,6 +6,48 @@ ThisBuild / scalaVersion     := "2.12.16"
 ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "zjv"
 
+val x = setSourceMode(true)
+val _ = System.setProperty("sbt.workspace", "depend")
+
+
+lazy val overrideDependsLock = SettingKey[Boolean]("overrideDependsLock", "avoid recursive modify project dependencies")
+overrideDependsLock := false
+
+commands += Command.command("overrideDepends") { state =>
+  if (overrideDependsLock.value) {
+    state
+  } else {
+    val dropDeps = Seq(
+      ("edu.berkeley.cs", "firrtl"),
+      ("edu.berkeley.cs", "chisel3"),
+      ("edu.berkeley.cs", "chisel3-core"),
+      ("edu.berkeley.cs", "chisel3-macros"),
+      ("edu.berkeley.cs", "chisel3-plugin"),
+      ("edu.berkeley.cs", "treadle"),
+    )
+    Project.extract(state).appendWithSession(
+      Seq(
+        overrideDependsLock := true,
+        chisel / libraryDependencies := (chisel / libraryDependencies).value.filterNot { dep =>
+          dropDeps.contains((dep.organization, dep.name))
+        },
+        core / libraryDependencies := (core / libraryDependencies).value.filterNot { dep =>
+          dropDeps.contains((dep.organization, dep.name))
+        },
+        macros / libraryDependencies := (macros / libraryDependencies).value.filterNot { dep =>
+          dropDeps.contains((dep.organization, dep.name))
+        },
+        plugin / libraryDependencies := (plugin / libraryDependencies).value.filterNot { dep =>
+          dropDeps.contains((dep.organization, dep.name))
+        },
+      ),
+      state
+    )
+  }
+}
+
+
+
 lazy val commonSettings = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
@@ -35,8 +77,8 @@ val elaborateDir = settingKey[File]("roadmap elaborate target directory")
 val cleanElaborate = taskKey[Unit]("Delete elaborate dictionary")
 
 /* roadmap configurations */
-val dumpVerilog = true
-val dumpFIRRTL = true
+val dumpVerilog = false
+val dumpFIRRTL = false
 val outputDir = "build"
 val otherArgs = Seq(
   "--full-stacktrace",
@@ -50,9 +92,10 @@ val otherArgs = Seq(
 lazy val roadmapSettings = Seq(
   name := "roadmap",
   libraryDependencies ++= Seq(
-    // TODO: remove this after chisel 3.6
-    "com.sifive" %% "chisel-circt" % "0.6.0",
-    "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4"
+//    // TODO: remove this after chisel 3.6
+//    "com.sifive" %% "chisel-circt" % "0.6.0",
+//    "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4",
+    // "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
   ),
   scalacOptions ++= Seq("-P:chiselplugin:genBundleElements"),
   Compile / sourceGenerators += Def.task {
@@ -141,34 +184,18 @@ lazy val roadmapSettings = Seq(
     val build = elaborateDir.value
       s.log.warn(scala.Console.YELLOW + s"cleanElaborate: ${build} is removed")
     IO.delete(build)
+  },
+  Global / onLoad := {
+    ((s: State) => { "overrideDepends" :: s }) compose (onLoad in Global).value
   }
 )
 
+lazy val core = project in file("depend/chisel3") / "core"
+lazy val macros = project in file("depend/chisel3") / "macros"
+lazy val plugin = project in file("depend/chisel3") / "plugin"
+lazy val chisel = project in file("depend/chisel3")
 lazy val roadmap = (project in file("."))
+  .dependsOn(chisel, core, macros, plugin)
   .settings(commonSettings: _*)
   .settings(roadmapSettings: _*)
   .settings(usePluginSettings: _*)
-  .dependsOn(firrtl, chisel, core, `macro`, plugin, chiseltest)
-
-lazy val chiseltest = (project in file("depend/chiseltest"))
-  .settings(commonSettings: _*)
-
-lazy val firrtl = (project in file("depend/firrtl"))
-  .settings(commonSettings: _*)
-
-lazy val chisel = (project in file("depend/chisel3"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
-lazy val core = (project in file("depend/chisel3/core"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
-lazy val `macro` = (project in file("depend/chisel3/macro"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-
-lazy val plugin = (project in file("depend/chisel3/plugin"))
-  .settings(commonSettings: _*)
-  .dependsOn(firrtl)
-

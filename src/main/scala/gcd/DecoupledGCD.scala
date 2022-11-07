@@ -74,22 +74,22 @@ class DecoupledGcd(width: Int) extends Module {
   }
 }
 
-object SFC_GenDecoupledGcd extends App {
-    println("Elaborating DecoupledGcd Moudle ...")
+// object SFC_GenDecoupledGcd extends App {
+//     println("Elaborating DecoupledGcd Moudle ...")
 
-    // both of them are equal
-    emitVerilog(new DecoupledGcd(16), Array("--target-dir", "build"))
-    new (chisel3.stage.ChiselStage).execute(
-      Array("--target-dir", "build"), 
-      Seq(ChiselGeneratorAnnotation(() => new DecoupledGcd(16))))
-}
+//     // both of them are equal
+//     emitVerilog(new DecoupledGcd(16), Array("--target-dir", "build"))
+//     new (chisel3.stage.ChiselStage).execute(
+//       Array("--target-dir", "build"), 
+//       Seq(ChiselGeneratorAnnotation(() => new DecoupledGcd(16))))
+// }
 
-object MFC_GenDecoupledGcd extends App {
-    println("Elaborating DecoupledGcd Moudle ...")
+// object MFC_GenDecoupledGcd extends App {
+//     println("Elaborating DecoupledGcd Moudle ...")
 
-    // both of them are equal
-    // circt.stage.ChiselStage.emitSystemVerilog(new DecoupledGcd(16))  // lack of target dictionary
-    (new circt.stage.ChiselStage).execute(
-      Array("--target", "systemverilog", "--target-dir", "build"),
-      Seq(chisel3.stage.ChiselGeneratorAnnotation(() => new DecoupledGcd(16))))
-}
+//     // both of them are equal
+//     // circt.stage.ChiselStage.emitSystemVerilog(new DecoupledGcd(16))  // lack of target dictionary
+//     (new circt.stage.ChiselStage).execute(
+//       Array("--target", "systemverilog", "--target-dir", "build"),
+//       Seq(chisel3.stage.ChiselGeneratorAnnotation(() => new DecoupledGcd(16))))
+// }
