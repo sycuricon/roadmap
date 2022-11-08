@@ -6,6 +6,9 @@ ThisBuild / scalaVersion     := "2.12.16"
 ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "zjv"
 
+val chisel_src_mode = setSourceMode(true)
+val firrtl_src_dir = System.setProperty("sbt.workspace", System.getProperty("user.dir") + "/depend")
+
 /* roadmap Task */
 val roadmapInfo = settingKey[Unit]("roadmap boot information").withRank(KeyRanks.Invisible)
 val elaborate = inputKey[Unit]("elaborate and dump circuits")
@@ -30,7 +33,8 @@ lazy val roadmapSettings = Seq(
   libraryDependencies ++= Seq(
     // TODO: remove this after chisel 3.6
     "com.sifive" %% "chisel-circt" % "0.6.0",
-    "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4"
+    "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4",
+    "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
   ),
   Compile / scalacOptions ++= {
     val jar = (plugin / Compile / Keys.`package`).value
@@ -138,13 +142,11 @@ lazy val roadmapSettings = Seq(
   }
 )
 
-lazy val firrtl = (project in file("depend/firrtl"))
 lazy val chisel = (project in file("depend/chisel3"))
 lazy val core = (project in file("depend/chisel3/core"))
 lazy val macros = (project in file("depend/chisel3/macros"))
 lazy val plugin = (project in file("depend/chisel3/plugin"))
-lazy val chiseltest = (project in file("depend/chiseltest"))
 
 lazy val roadmap = (project in file("."))
   .settings(roadmapSettings: _*)
-  .dependsOn(firrtl, chisel, core, macros, plugin, chiseltest)
+  .dependsOn(chisel, core, macros, plugin)
