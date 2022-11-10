@@ -1,8 +1,8 @@
-package roadmap
+package roadmap.chisel
 
 import chisel3._
-import chisel3.util._
 import chisel3.experimental._
+import chisel3.util._
 
 trait ScalarOpConstants {
   def IMM_X  = BitPat("b???")

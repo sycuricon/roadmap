@@ -1,4 +1,4 @@
-package debug
+package roadmap.firrtl
 
 import chisel3._
 import chisel3.stage.ChiselGeneratorAnnotation
@@ -58,27 +58,26 @@ class ZeroLengthVecsTest() extends Module {
   io.out := io.in
 }
 
-object buildWithDifferentEmitter extends App {
-  def run(moduleName:String, gen: () => RawModule): Unit = {
-    println("Elaborating Moudle ...")
+object FormTest extends App {
+  def run(moduleName:String): Unit = {
+    println(s"Elaborating ${moduleName} ...")
 
     new (chisel3.stage.ChiselStage).execute(
       Array("--target-dir", s"build/${moduleName}"),
-      Seq(ChiselGeneratorAnnotation(gen)))
+      Seq(ChiselGeneratorAnnotation(() => Class.forName(moduleName).getConstructor().newInstance().asInstanceOf[RawModule])))
 
     val emitter_name = Array("chirrtl", "mhigh", "high", "middle", "low", "low-opt")
     var i: Int = 0
     for (name <- emitter_name) {
       new (chisel3.stage.ChiselStage).execute(
         Array("--target-dir", s"build/${moduleName}/${i}_".format(i).concat(name), "-E", name),
-        Seq(ChiselGeneratorAnnotation(gen)))
+        Seq(ChiselGeneratorAnnotation(() => Class.forName(moduleName).getConstructor().newInstance().asInstanceOf[RawModule])))
       i = i + 1
     }
-
   }
 
-  run("PullMuxesTest", () => new PullMuxesTest())
-  //run("RegFileDemo", () => new RegFileDemo())
-  //run("ImmGenDemo", () => new ImmGenDemo())
-  //run("ScoreboardDemo", () => new ScoreboardDemo())
+  run("roadmap.firrtl.ReplaceAccessesTest")
+  run("roadmap.chisel.RegFileDemo")
+  run("roadmap.chisel.ImmGenDemo")
+  run("roadmap.chisel.ScoreboardDemo")
 }
