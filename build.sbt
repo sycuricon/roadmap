@@ -2,7 +2,7 @@ import sbt.complete.Parsers.spaceDelimited
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / scalaVersion     := "2.12.16"
+ThisBuild / scalaVersion     := "2.12.17"
 ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "zjv"
 
