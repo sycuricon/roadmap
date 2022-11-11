@@ -4,6 +4,4 @@
 [submodule "depend/firrtl"]
 	path = depend/firrtl
 	url = https://github.com/chipsalliance/firrtl.git
-[submodule "depend/chiseltest"]
-	path = depend/chiseltest
-	url = https://github.com/ucb-bar/chiseltest.git
+
