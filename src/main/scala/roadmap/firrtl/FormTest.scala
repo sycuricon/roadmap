@@ -1,4 +1,4 @@
-package debug
+package roadmap.firrtl
 
 import chisel3._
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
@@ -180,25 +180,31 @@ object ZeroLengthVecsTest extends PassTester {
 object buildWithDifferentEmitter extends App {
   def run(moduleName: String, gen: () => RawModule): Unit = {
     println("Elaborating Module ...")
+object FormTest extends App {
+  def run(moduleName:String): Unit = {
+    println(s"Elaborating ${moduleName} ...")
 
     new (chisel3.stage.ChiselStage).execute(
       Array("--target-dir", s"build/${moduleName}"),
-      Seq(ChiselGeneratorAnnotation(gen)))
+      Seq(ChiselGeneratorAnnotation(() => Class.forName(moduleName).getConstructor().newInstance().asInstanceOf[RawModule])))
 
     val emitter_name = Array("chirrtl", "mhigh", "high", "middle", "low", "low-opt")
     var i: Int = 0
     for (name <- emitter_name) {
       new (chisel3.stage.ChiselStage).execute(
         Array("--target-dir", s"build/${moduleName}/${i}_".format(i).concat(name), "-E", name),
-        Seq(ChiselGeneratorAnnotation(gen)))
+        Seq(ChiselGeneratorAnnotation(() => Class.forName(moduleName).getConstructor().newInstance().asInstanceOf[RawModule])))
       i = i + 1
     }
-
   }
 }
 
 object runPassesTest extends App {
 
+  run("roadmap.firrtl.ReplaceAccessesTest")
+  run("roadmap.chisel.RegFileDemo")
+  run("roadmap.chisel.ImmGenDemo")
+  run("roadmap.chisel.ScoreboardDemo")
   def runPassesTest(test: PassTester): Unit = test.run()
 
   //run("RegFileDemo", () => new RegFileDemo())
