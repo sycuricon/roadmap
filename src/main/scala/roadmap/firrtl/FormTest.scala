@@ -1,62 +1,9 @@
 package roadmap.firrtl
 
 import chisel3._
-import chisel3.stage.ChiselGeneratorAnnotation
-
-class atom() extends Module {
-  val io = IO(new Bundle{
-    val in = Input(UInt(64.W))
-    val out = Output(Vec(2, UInt(64.W)))
-  })
-  io.out(0) := io.in
-  io.out(1) := io.in
-}
-
-class PullMuxesTest() extends Module {
-  val io = IO(new Bundle{
-    val en = Input(Bool())
-    val in1 = Input(Vec(2, UInt(64.W)))
-    val in2 = Input(Vec(2, UInt(64.W)))
-    val res = Output(UInt(64.W))
-  })
-
-  io.res := Mux(io.en, io.in1, io.in2)(0)
-}
-
-
-class ReplaceAccessesTest() extends Module {
-  val io = IO(new Bundle{
-    val in = Input(Vec(2, UInt(64.W)))
-    val res = Output(UInt(64.W))
-  })
-  val index = 1.U
-  io.res := io.in(index)
-}
-
-class ExpandConnectTest() extends Module {
-  val io = IO(new Bundle{
-    val in = Input(Vec(2, UInt(64.W)))
-    val res = Output(Vec(2, UInt(64.W)))
-  })
-  io.res := io.in
-}
-
-class RemoveAccessesTest() extends Module {
-  val io = IO(new Bundle{
-    val id = Input(UInt(2.W))
-    val in = Input(Vec(4, UInt(64.W)))
-    val out = Output(UInt(64.W))
-  })
-  io.out := io.in(io.id)
-}
-
-class ZeroLengthVecsTest() extends Module {
-  val io = IO(new Bundle{
-    val in = Input(Vec(0, UInt(64.W)))
-    val out = Output(Vec(0, UInt(64.W)))
-  })
-  io.out := io.in
-}
+import chisel3.stage.{ChiselGeneratorAnnotation}
+import firrtl._
+import roadmap._
 
 object FormTest extends App {
   def run(moduleName:String): Unit = {
@@ -76,8 +23,8 @@ object FormTest extends App {
     }
   }
 
-  run("roadmap.firrtl.ReplaceAccessesTest")
   run("roadmap.chisel.RegFileDemo")
   run("roadmap.chisel.ImmGenDemo")
   run("roadmap.chisel.ScoreboardDemo")
 }
+
