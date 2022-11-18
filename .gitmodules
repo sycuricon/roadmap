@@ -5,3 +5,9 @@
 	path = depend/firrtl
 	url = https://github.com/chipsalliance/firrtl.git
 
+[submodule "depend/cde"]
+	path = depend/cde
+	url = https://github.com/chipsalliance/cde.git
+[submodule "depend/diplomacy"]
+	path = depend/diplomacy
+	url = https://github.com/chipsalliance/diplomacy.git

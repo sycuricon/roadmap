@@ -142,11 +142,26 @@ lazy val roadmapSettings = Seq(
   }
 )
 
+// Chisel/FIRRTL Chapter Study
 lazy val chisel = (project in file("depend/chisel3"))
 lazy val core = (project in file("depend/chisel3/core"))
 lazy val macros = (project in file("depend/chisel3/macros"))
 lazy val plugin = (project in file("depend/chisel3/plugin"))
 
+// SoC Chapter Study
+lazy val cde = (project in file("depend/cde/cde"))
+  .settings(
+    Compile / scalaSource := baseDirectory.value / "src/chipsalliance/rocketchip"
+  )
+lazy val diplomacy = (project in file("depend/diplomacy/diplomacy"))
+  .settings(
+    libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.2.7",
+    Compile / scalaSource := baseDirectory.value / "src/diplomacy",
+    Compile / sources += rootPaths.value("BASE").toFile() / "src/main/scala/package.scala"
+  )
+  .dependsOn(chisel, cde)
+
 lazy val roadmap = (project in file("."))
   .settings(roadmapSettings: _*)
   .dependsOn(chisel, core, macros, plugin)
+  .dependsOn(cde, diplomacy)
