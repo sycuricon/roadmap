@@ -157,7 +157,19 @@ lazy val diplomacy = (project in file("depend/diplomacy/diplomacy"))
   .settings(
     libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.2.7",
     Compile / scalaSource := baseDirectory.value / "src/diplomacy",
-    Compile / sources += rootPaths.value("BASE").toFile() / "src/main/scala/package.scala"
+  )
+  .settings(
+    Compile / sourceGenerators += Def.task {
+      val file = sourceManaged.value / "package_cde.scala"
+      IO.write(file,
+        """
+          |package chipsalliance
+          |package object rocketchip {
+          |  val config = org.chipsalliance.cde.config
+          |}
+          |""".stripMargin)
+      Seq(file)
+    }.taskValue,
   )
   .dependsOn(chisel, cde)
 
