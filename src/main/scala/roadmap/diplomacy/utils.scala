@@ -2,8 +2,6 @@ package roadmap.diplomacy
 
 import chisel3.emitVerilog
 import diplomacy.lazymodule._
-import org.chipsalliance.cde.config.Parameters
-import roadmap.diplomacy.unit.module.emptyModule
 
 object writeGraphML {
   def apply(m: LazyModule, target_dir: String = "build"): Unit = {
@@ -13,13 +11,12 @@ object writeGraphML {
   }
 }
 
-trait DisplayInGraphML { this: LazyModule =>
+trait ExplicitNode { this: LazyModule =>
   override def omitGraphML: Boolean = false
 }
 
-abstract class diplomacyTest(module: LazyModule) extends App {
-  implicit val config = Parameters.empty
-  val m = LazyModule(module)
-  emitVerilog(m.module, Array("--target-dir", "build", "--no-dce"))
-  writeGraphML(m)
+abstract class diplomacyTest(lm: LazyModule) extends App {
+  val module = LazyModule(lm)
+  emitVerilog(module.module, Array("--target-dir", "build", "--no-dce"))
+  writeGraphML(module)
 }

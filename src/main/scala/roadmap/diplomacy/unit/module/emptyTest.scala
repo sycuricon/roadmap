@@ -2,7 +2,6 @@ package roadmap.diplomacy.unit.module
 
 import chisel3._
 import diplomacy.lazymodule._
-import chipsalliance.rocketchip.config._
 
 import roadmap.diplomacy._
 
