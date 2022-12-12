@@ -34,7 +34,8 @@ lazy val roadmapSettings = Seq(
     // TODO: remove this after chisel 3.6
     "com.sifive" %% "chisel-circt" % "0.6.0",
     "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4",
-    "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
+    "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test",
+    "org.reflections" % "reflections" % "0.10.2"
   ),
   Compile / scalacOptions ++= {
     val jar = (plugin / Compile / Keys.`package`).value
