@@ -25,17 +25,20 @@ object paramDump {
     dump(p, scopes.toSet)
   }
 
-  private def dump(p: Parameters, scopes: Set[String]) = {
+  def dump(p: Parameters, scopes: Set[String]) = {
     val fields = scopes.map(new Reflections(_)).flatMap(_.getSubTypesOf(classOf[Field[_]]).toArray).toSet
     val result = fields.toSeq.map(_.toString).sorted.map(s => {
       val rm = runtimeMirror(getClass.getClassLoader)
-      val module = rm.staticModule(s.substring(6))
-      val field = rm.reflectModule(module).instance
-
-      val liftCall = typeOf[View].decl(TermName("lift")).asMethod
-      val value = rm.reflect(p).reflectMethod(liftCall)(field)
-
-      s"${field}: ${value}"
+      val fieldSymbol = rm.staticModule(s.substring(6))
+      val fieldMirror = rm.reflectModule(fieldSymbol)
+      val field = fieldMirror.instance
+      if (fieldMirror.symbol.info.members.size > 1) {
+        s"${field} is a case class"
+      } else {
+        val liftCall = typeOf[View].decl(TermName("lift")).alternatives.find(_.asMethod.paramLists.size == 1).get.asMethod
+        val value = rm.reflect(p).reflectMethod(liftCall)(field)
+        s"${field}: ${value}"
+      }
     })
 
     println("Dumping " + p.getClass.toString.substring(6))
