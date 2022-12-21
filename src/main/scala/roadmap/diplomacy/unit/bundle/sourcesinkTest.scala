@@ -18,7 +18,7 @@ class SinkLazyModule extends LazyModule with ExplicitNode {
   lazy val module = new LazyModuleImp(this)
 }
 
-object sourceSinkTest extends diplomacyTest (
+object sourceSinkTest extends diplomacyTest(
   new LazyModule with ExplicitNode {
   val sourceModule = LazyModule(new SourceLazyModule)
   val sinkModule = LazyModule(new SinkLazyModule)

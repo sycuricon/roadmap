@@ -14,7 +14,7 @@ class nexusLazyModule extends LazyModule with ExplicitNode {
   }
 }
 
-object makeIOTest extends diplomacyTest (
+object makeIOTest extends diplomacyTest(
   new LazyModule with ExplicitNode {
     val sinkNode = LazyModule(new SinkLazyModule).sink
     val srcNode = BundleBridgeSource[UInt](() => UInt(32.W))

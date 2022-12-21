@@ -5,6 +5,4 @@ import diplomacy.lazymodule._
 
 import roadmap.diplomacy._
 
-class emptyModule extends SimpleLazyModule
-
-object lazyModuleTest extends diplomacyTest(new emptyModule())
+object emptyTest extends diplomacyTest(new SimpleLazyModule)

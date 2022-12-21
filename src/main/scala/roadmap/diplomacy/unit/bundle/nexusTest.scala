@@ -6,7 +6,7 @@ import diplomacy.bundlebridge._
 
 import roadmap.diplomacy._
 
-object nexusTest extends diplomacyTest (
+object nexusTest extends diplomacyTest(
   new LazyModule with ExplicitNode {
     val sourceModule = LazyModule(new SourceLazyModule)
     val sinkModule = LazyModule(new SinkLazyModule)

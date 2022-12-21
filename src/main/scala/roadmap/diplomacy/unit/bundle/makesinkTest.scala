@@ -5,7 +5,7 @@ import diplomacy.lazymodule._
 
 import roadmap.diplomacy._
 
-object makeSinkTest extends diplomacyTest (
+object makeSinkTest extends diplomacyTest(
   new LazyModule with ExplicitNode {
     val src = LazyModule(new SourceLazyModule)
     val sink = src.source.makeSink()
