@@ -35,4 +35,4 @@ class IdentityModule(implicit p: Parameters) extends LazyModule with ExplicitNod
   lazy val module = new LazyModuleImp(this)
 }
 
-object IdentityTest extends diplomacyTest(new IdentityModule()(roadmap.diplomacy.default))
+object identityTest extends diplomacyTest(new IdentityModule()(roadmap.diplomacy.default))
