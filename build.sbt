@@ -2,51 +2,9 @@ import sbt.complete.Parsers.spaceDelimited
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / scalaVersion     := "2.12.16"
-ThisBuild / version          := "0.1.0"
-ThisBuild / organization     := "zjv"
-
-val x = setSourceMode(true)
-val _ = System.setProperty("sbt.workspace", "depend")
-
-
-lazy val overrideDependsLock = SettingKey[Boolean]("overrideDependsLock", "avoid recursive modify project dependencies")
-overrideDependsLock := false
-
-commands += Command.command("overrideDepends") { state =>
-  if (overrideDependsLock.value) {
-    state
-  } else {
-    val dropDeps = Seq(
-      ("edu.berkeley.cs", "firrtl"),
-      ("edu.berkeley.cs", "chisel3"),
-      ("edu.berkeley.cs", "chisel3-core"),
-      ("edu.berkeley.cs", "chisel3-macros"),
-      ("edu.berkeley.cs", "chisel3-plugin"),
-      ("edu.berkeley.cs", "treadle"),
-    )
-    Project.extract(state).appendWithSession(
-      Seq(
-        overrideDependsLock := true,
-        chisel / libraryDependencies := (chisel / libraryDependencies).value.filterNot { dep =>
-          dropDeps.contains((dep.organization, dep.name))
-        },
-        core / libraryDependencies := (core / libraryDependencies).value.filterNot { dep =>
-          dropDeps.contains((dep.organization, dep.name))
-        },
-        macros / libraryDependencies := (macros / libraryDependencies).value.filterNot { dep =>
-          dropDeps.contains((dep.organization, dep.name))
-        },
-        plugin / libraryDependencies := (plugin / libraryDependencies).value.filterNot { dep =>
-          dropDeps.contains((dep.organization, dep.name))
-        },
-      ),
-      state
-    )
-  }
-}
-
-
+ThisBuild / scalaVersion     := "2.13.10"
+ThisBuild / version          := "0.1.1"
+ThisBuild / organization     := "sycuricon"
 
 lazy val commonSettings = Seq(
   scalacOptions ++= Seq(
@@ -59,17 +17,6 @@ lazy val commonSettings = Seq(
   ),
 )
 
-lazy val usePluginSettings = Seq(
-  Compile / scalacOptions ++= {
-    val jar = (plugin / Compile / Keys.`package`).value
-    val addPlugin = "-Xplugin:" + jar.getAbsolutePath
-    // add plugin timestamp to compiler options to trigger recompile of
-    // main after editing the plugin. (Otherwise a 'clean' is needed.)
-    val dummy = "-Jdummy=" + jar.lastModified
-    Seq(addPlugin, dummy)
-  }
-)
-
 /* roadmap Task */
 val roadmapInfo = settingKey[Unit]("roadmap boot information").withRank(KeyRanks.Invisible)
 val elaborate = inputKey[Unit]("elaborate and dump circuits")
@@ -80,24 +27,16 @@ val cleanElaborate = taskKey[Unit]("Delete elaborate dictionary")
 val dumpVerilog = false
 val dumpFIRRTL = false
 val outputDir = "build"
-val otherArgs = Seq(
-  "--full-stacktrace",
-  "-ll", "info", "--log-class-names",
-  "--no-dce",
-  "--infer-rw",
-  "--emission-options", "disableMemRandomization,disableRegisterRandomization",
-  "--gen-mem-verilog", "full"
+val userChiselArgs = Seq(
+  "--dump-fir"
+)
+val userFirtoolArgs = Seq(
 )
 
 lazy val roadmapSettings = Seq(
   name := "roadmap",
   libraryDependencies ++= Seq(
-//    // TODO: remove this after chisel 3.6
-//    "com.sifive" %% "chisel-circt" % "0.6.0",
-//    "edu.berkeley.cs" %% "firrtl-diagrammer" % "1.5.4",
-    // "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
   ),
-  scalacOptions ++= Seq("-P:chiselplugin:genBundleElements"),
   Compile / sourceGenerators += Def.task {
     val file = (Compile / sourceManaged).value / "Elaborate.scala"
     IO.touch(file)
@@ -139,12 +78,17 @@ lazy val roadmapSettings = Seq(
       Def.taskDyn{
         Def.task {
           val file = (Compile / sourceManaged).value / "Elaborate.scala"
+          val chiselArgs = if (userChiselArgs.isEmpty) "" else "\"" + s"${userChiselArgs.mkString("\", \"")}" + "\", "
+          val firtoolArgs = if (userFirtoolArgs.isEmpty) "" else "\"" + s"${userFirtoolArgs.mkString("\", \"")}" + "\""
           IO.write(file,
             s"""package ${classArray.dropRight(1).mkString(".")}
-              |import chisel3._
+              |import circt.stage._
               |object ${"_elaborate_" + classArray.last} extends App {
               |println("[info] elaborating ${classPath} module")
-              |emitVerilog(new ${classArray.last}(${args.drop(1).mkString(" ")}), Array("--target-dir", "${elaborateDir.value}") ++ Array("${otherArgs.mkString("\", \"")}") )
+              |ChiselStage.emitSystemVerilogFile(
+              |    new ${classArray.last}(${args.drop(1).mkString(" ")}), 
+              |    Array(${chiselArgs}"--target-dir", "${elaborateDir.value}"),
+              |    Array(${firtoolArgs}))
               |}""".stripMargin)
         }.value
         (Compile / runMain).toTask(
@@ -161,16 +105,7 @@ lazy val roadmapSettings = Seq(
               s.log.info(scala.Console.RED + s"Can not find ${firrtl_path}, does the elaborate task fail?")
             }
           }
-          if (dumpVerilog) {
-            val verilog_path = elaborateDir.value / s"${classArray.last}.v"
-            if (verilog_path.exists()) {
-              s.log.info(scala.Console.GREEN + s"Verilog code in ${verilog_path}:")
-              printf(IO.read(verilog_path))
-            }
-            else {
-              s.log.info(scala.Console.RED + s"Can not find ${verilog_path}, does the elaborate task fail?")
-            }
-          }
+
         }
       }
     } else {
@@ -184,18 +119,23 @@ lazy val roadmapSettings = Seq(
     val build = elaborateDir.value
       s.log.warn(scala.Console.YELLOW + s"cleanElaborate: ${build} is removed")
     IO.delete(build)
-  },
-  Global / onLoad := {
-    ((s: State) => { "overrideDepends" :: s }) compose (onLoad in Global).value
   }
 )
 
-lazy val core = project in file("depend/chisel3") / "core"
-lazy val macros = project in file("depend/chisel3") / "macros"
-lazy val plugin = project in file("depend/chisel3") / "plugin"
 lazy val chisel = project in file("depend/chisel3")
+
 lazy val roadmap = (project in file("."))
-  .dependsOn(chisel, core, macros, plugin)
+  .dependsOn(chisel)
   .settings(commonSettings: _*)
   .settings(roadmapSettings: _*)
-  .settings(usePluginSettings: _*)
+  .settings(
+       Compile / scalacOptions ++= {
+         val jar = (Project("plugin", file("depend/chisel3/plugin")) / Compile / Keys.`package`).value
+         val addPlugin = "-Xplugin:" + jar.getAbsolutePath
+         // add plugin timestamp to compiler options to trigger recompile of
+         // main after editing the plugin. (Otherwise a 'clean' is needed.)
+         val dummy = "-Jdummy=" + jar.lastModified
+         Seq(addPlugin, dummy)
+       }
+  )
+
