@@ -1,4 +1,11 @@
-# RoadMap
-> Do not push the contents of this repository to the public.
+# Chisel Roadmap Project
 
-<-  Add reports in the wiki pages 
+Wow, there is a playground for hacking chisel source code.
+
+We provide a fancy sbt command `elaborate` to directly elaborate chisel modules.
+
+```shell
+sbt "elaborate roadmap.ImmGenDemo"
+```
+
+Have fun! :P
