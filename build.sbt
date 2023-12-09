@@ -31,11 +31,14 @@ val userChiselArgs = Seq(
   "--dump-fir"
 )
 val userFirtoolArgs = Seq(
+  "--disable-all-randomization",
+  "--disable-opt"
 )
 
 lazy val roadmapSettings = Seq(
   name := "roadmap",
   libraryDependencies ++= Seq(
+    "edu.berkeley.cs" %% "chiseltest" % "5.0.2" % "test"
   ),
   Compile / sourceGenerators += Def.task {
     val file = (Compile / sourceManaged).value / "Elaborate.scala"
@@ -93,20 +96,7 @@ lazy val roadmapSettings = Seq(
         }.value
         (Compile / runMain).toTask(
           s" ${classArray.dropRight(1).mkString(".")}._elaborate_${classArray.last}"
-        ).value
-        Def.task {
-          if (dumpFIRRTL) {
-            val firrtl_path = elaborateDir.value / s"${classArray.last}.fir"
-            if (firrtl_path.exists()) {
-              s.log.info(scala.Console.BLUE + s"FIRRTL code in ${firrtl_path}:")
-              printf(IO.read(firrtl_path))
-            }
-            else {
-              s.log.info(scala.Console.RED + s"Can not find ${firrtl_path}, does the elaborate task fail?")
-            }
-          }
-
-        }
+        )
       }
     } else {
       Def.task {
@@ -122,7 +112,8 @@ lazy val roadmapSettings = Seq(
   }
 )
 
-lazy val chisel = project in file("depend/chisel3")
+lazy val chisel = (project in file("depend/chisel3"))
+  .settings(commonSettings: _*)
 
 lazy val roadmap = (project in file("."))
   .dependsOn(chisel)
